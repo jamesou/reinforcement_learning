@@ -24,7 +24,7 @@ t_start = time.time()
 base_name = 'sac_time_var'
 save_path = 'saves_rlkit_21d'  # where the outputs will be saved
 full_path = '{}/{}'.format(save_path, base_name)
-source_path = 'D:/MyWorks/糖尿病预测/强化学习方法/rl4bg'  # the path to the location of the folder 'bgp' which contains the source code
+source_path = '/root/projects/reinforcement_learning'  # the path to the location of the folder 'bgp' which contains the source code
 print(base_name)
 
 # General utility parameters

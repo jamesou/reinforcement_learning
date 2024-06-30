@@ -14,8 +14,8 @@ This script was used to tune the PID and PID-MA baselines. It performs an iterat
 refinement over possible parameters. The best parameters can then be tested using pid_data_collection.py
 """
 
-source_dir = 'D:/MyWorks/糖尿病预测/强化学习方法/rl4bg'
-source_path = 'D:/MyWorks/糖尿病预测/强化学习方法/rl4bg/bgp'
+source_dir = '/root/projects/reinforcement_learning'
+source_path = '/root/projects/reinforcement_learning/bgp'
 
 data_dir = 'rl/dir'
 # note: current code assumes different names for residual_bolus and non residual_bolus

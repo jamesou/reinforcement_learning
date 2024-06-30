@@ -11,7 +11,7 @@ This script was used to test the PID and PID-MA baselines. Note that it assumes
 """
 
 data_dir = 'saves' # '/data/dir'
-source_dir = 'D:/MyWorks/糖尿病预测/强化学习方法/rl4bg'  # '/source/dir'
+source_dir = '/root/projects/reinforcement_learning'  # '/source/dir'
 name = 'pid'
 save_dir = '{}/{}'.format(data_dir, name)
 if not os.path.exists(save_dir):

@@ -18,7 +18,7 @@ n_jobs = 2
 # n_jobs = 10
 name = 'basal_bolus'
 server = 'mld4'
-source_path = 'D:/MyWorks/糖尿病预测/强化学习方法/rl4bg/bgp'
+source_path = '/root/projects/reinforcement_learning/bgp'
 save_path = 'saves'
 full_path = '{}/{}'.format(save_path, name)
 
@@ -62,7 +62,7 @@ def run_bb(name, seed, n_days, full_path):
                                 fake_gt=False, fake_real=False,
                                 suppress_carbs=False, limited_gt=False,
                                 termination_penalty=None, hist_init=True, harrison_benedict=True, meal_duration=5,
-                                source_path=source_path,source_dir='D:/MyWorks/糖尿病预测/强化学习方法/rl4bg')
+                                source_path=source_path,source_dir='/root/projects/reinforcement_learning')
     action = cnt.manual_bb_policy(carbs=0, glucose=140)
     # print(name)
     # print(action)
