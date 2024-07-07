@@ -17,7 +17,7 @@ from bgp.rl import pid
 from bgp.rl.reward_functions import risk_diff
 import bgp.simglucose.envs.simglucose_gym_env as bgp_env
 from bgp.rl import reward_functions
-from bgp.rl.dqn import *
+import bgp.rl.dqn as dqn
 
 def reward_name_to_function(reward_name):
     if reward_name == 'risk_diff':
@@ -265,7 +265,7 @@ for setting in itertools.product(*option_dict.values()):
         carb_miss_prob=0,
     )
     # run_train(variant=variant)
-    run_eval(variant=variant,model_path=f'saves/child#003_0/last_epoch_DQN_5.pt',name='child#003')
+    dqn.run_eval(variant=variant,model_path=f'saves/child#003_0/last_epoch_DQN_5.pt',name='child#003')
     # for i in range(250,326,5):
         # run_eval(variant=variant,model_path=f'saves/child#003_0/last_epoch_GRUQ_{i}.pt',name='child#003')
     break
