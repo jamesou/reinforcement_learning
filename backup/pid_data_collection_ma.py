@@ -35,19 +35,21 @@ patient_dict = {}
 # These names are determined by name in pid_test.py
 if residual_bolus:
     # grid, settings = joblib.load('rl/dir/pid_ma_tune_experiment_name_final_itr/grid_and_settings.pkl')
-    patients = pd.read_csv('rl/dir/pid_ma_setting.csv', header=None)
+    patients = pd.read_csv('rl/dir/hyperparametersp-ma.csv', header=None)
 else:
     # grid, settings = joblib.load('rl/dir/pid_tune_experiment_name_final_itr/grid_and_settings.pkl')
     # grid, settings = joblib.load('rl/dir/pid_tune_experiment_name_0/grid_and_settings.pkl')
-    patients = pd.read_csv('rl/dir/pid_setting.csv', header=None)
+    patients = pd.read_csv('rl/dir/hyperparameters.csv', header=None)
 
-for i in patients.iterrows():
-    patient = i[1].values[0].split('  ')
+for index, patient in patients.iterrows():
+    print(f"index:{index}")
+    print(f"patient[0]:{patient[0]}")
+    print(f"patient[1:]:{patient[1:]}")
     patient_dict[patient[0]]=[float(i) for i in patient[1:]]
 
 # n_jobs = 20
 n_jobs = 5
-v_params = pd.read_csv('simglucose/params/vpatient_params.csv')
+v_params = pd.read_csv('bgp/simglucose/params/vpatient_params.csv')
 if __name__=='__main__':
     for person in person_options:
         vp_row = v_params.query('Name=="{}"'.format(person))

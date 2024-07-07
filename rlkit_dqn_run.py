@@ -6,7 +6,7 @@ from torch import nn
 from datetime import timedelta
 from bgp.rl.rlkit_platform import run_em_sac, finish_sac,run_em_dqn
 from bgp.training import experiments
-import rlkit.torch.pytorch_util as ptu
+import bgp.rlkit.torch.pytorch_util as ptu
 # ptu.set_gpu_mode(True)
 
 """
@@ -28,9 +28,9 @@ source_path = '/root/projects/reinforcement_learning'  # the path to the locatio
 print(base_name)
 
 # General utility parameters
-debug = False
-device_list = ['cuda:0']  # list of cuda device ids or None for cpu
-device = 'cuda:0'  # the cuda device to default to for debug runs, can also set to 'cpu'
+debug = True
+device_list = None #['cuda:0']  # list of cuda device ids or None for cpu
+device = 'cpu'#'cuda:0'  # the cuda device to default to for debug runs, can also set to 'cpu'
 # seed_options = [i for i in range(3)]
 seed_options = [i for i in range(1)]
 validation_seed_offset = 1000000
@@ -224,7 +224,8 @@ if __name__ == '__main__':
         for tup in tuples:
             variant, run_func = tup
             run_func(variant=variant)
-    elif device_list is not None:
+    # elif device_list is not None:
+    else:
         # run_manager = experiments.RLKitRunManager(device_list=device_list, run_func=run_func)
         for c in tuples:
             # run_manager.add_job(c)

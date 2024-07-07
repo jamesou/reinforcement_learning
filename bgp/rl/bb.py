@@ -11,23 +11,10 @@ import bgp.simglucose.envs.simglucose_gym_env as bgp_env
 import bgp.simglucose.controller.basal_bolus_ctrller as bbc
 
 """
-This script runs the BB baseline
+This script runs the manual BB baseline,用药物治疗
 """
-Seeds = namedtuple('seeds', ['numpy_seed', 'sensor_seed', 'scenario_seed'])
-n_jobs = 2
-# n_jobs = 10
-name = 'basal_bolus'
-server = 'mld4'
-source_path = '/root/projects/reinforcement_learning/bgp'
-save_path = 'saves'
-full_path = '{}/{}'.format(save_path, name)
 
-if not os.path.exists(full_path):
-    os.mkdir(full_path)
-
-def run_bb(name, seed, n_days, full_path):
-    q = pd.read_csv('{}/simglucose/params/Quest2.csv'.format(source_path))
-    p = pd.read_csv('{}/simglucose/params/vpatient_params.csv'.format(source_path))
+def bb_test(name, seed, n_days, full_path,q,p,residual_bolus,source_path):
     carb_error_mean = 0
     carb_error_std = .2
     carb_miss_prob = .05
@@ -43,9 +30,9 @@ def run_bb(name, seed, n_days, full_path):
                                  use_low_lim=True, low_lim=140)
 
     res_dict = {}
-    reward_fun=risk_bg
+    # reward_fun=risk_bg
     # reward_fun=magni_reward
-    # reward_fun=risk_diff
+    reward_fun=risk_diff
 
     env = bgp_env.DeepSACT1DEnv(reward_fun=reward_fun,
                                 patient_name=name,
@@ -57,22 +44,23 @@ def run_bb(name, seed, n_days, full_path):
                                 load=False, gt=False, n_hours=4,
                                 norm=False, time_std=None, action_cap=None, action_bias=0,
                                 action_scale=1, meal_announce=None,
-                                residual_basal=False, residual_bolus=False,
+                                residual_basal=False, residual_bolus=residual_bolus,
                                 residual_PID=False,
                                 fake_gt=False, fake_real=False,
                                 suppress_carbs=False, limited_gt=False,
                                 termination_penalty=None, hist_init=True, harrison_benedict=True, meal_duration=5,
                                 source_path=source_path,source_dir='/root/projects/reinforcement_learning')
     action = cnt.manual_bb_policy(carbs=0, glucose=140)
-    # print(name)
-    # print(action)
-    # print(env.ideal_basal)
+    print(name)
+    print(action)
+    print(env.ideal_basal)
     ep_r=0
     for i in tqdm(range(n_days * int(1440/sample_time))):
         o, r, d, info = env.step(action=action.basal+action.bolus)
-        # print(r)
+        print(f"i:{i}")
+        print(r)
         ep_r+=r
-        # print(ep_r)
+        print(ep_r)
         bg = env.env.CGM_hist[-1]
 
         carbs = info['meal'] * 5
@@ -81,22 +69,23 @@ def run_bb(name, seed, n_days, full_path):
         err = np.random.normal(carb_error_mean, carb_error_std)
         carbs = carbs + carbs * err
         action = cnt.manual_bb_policy(carbs=carbs, glucose=bg)
-        # if action.bolus>0:
-        #     # print((i%(1440/5))/12,action.bolus/action.basal)
-        #     print((i%(1440/5))/12,action.bolus/action.basal)
-        # print(action)
-        # print(bg)
+        if action.bolus>0:
+            # print((i%(1440/5))/12,action.bolus/action.basal)
+            print((i%(1440/5))/12,action.bolus/action.basal)
+        print(action)
+        print(bg)
     print(f'患者为{name},seed为{seed},平均risk为{ep_r/(n_days * int(1440/sample_time))}')
-    # hist = env.env.show_history()[288:]
-    # res_dict['person'] = name
-    # res_dict['seed'] = seed
-    # res_dict['bg'] = hist['BG'].mean()
-    # print(hist['BG'])
-    # res_dict['risk'] = hist['Risk'].mean()
-    # res_dict['hyper'] = (hist['BG'] > 180).sum() / len(hist['BG'])
-    # res_dict['hypo'] = (hist['BG'] < 70).sum() / len(hist['BG'])
-    # res_dict['event'] = res_dict['hyper'] + res_dict['hypo']
-    # joblib.dump(hist, '{}/bb_{}_seed{}.pkl'.format(full_path, name, seed))
+    hist = env.env.show_history()[288:]
+    res_dict['person'] = name
+    res_dict['seed'] = seed
+    res_dict['bg'] = hist['BG'].mean()
+    res_dict['risk'] = hist['Risk'].mean()
+    res_dict['hyper'] = (hist['BG'] > 180).sum() / len(hist['BG'])
+    res_dict['hypo'] = (hist['BG'] < 70).sum() / len(hist['BG'])
+    res_dict['event'] = res_dict['hyper'] + res_dict['hypo']
+    res_dict['accum_r'] = ep_r
+    print(hist)
+    joblib.dump(hist, '{}/bb_{}_seed{}.pkl'.format(full_path, name, seed))
     statistics = OrderedDict()
     statistics['Risk'] = [env.avg_risk()]
     statistics['MagniRisk'] = [env.avg_magni_risk()]
@@ -111,23 +100,9 @@ def run_bb(name, seed, n_days, full_path):
     statistics['Euglycemic'] = [euglycemic]
     statistics['Hypoglycemic'] = [hypo]
     statistics['Hyperglycemic'] = [hyper]
+    print(statistics)
     # return res_dict
     joblib.dump(statistics, '{}/bb_{}_seed{}.pkl'.format(full_path, name, seed))
     return statistics
 
-
-# patients = (['adolescent#0{}'.format(str(i).zfill(2)) for i in range(1, 11)] +
-#             ['child#0{}'.format(str(i).zfill(2)) for i in range(1, 11)] +
-#             ['adult#0{}'.format(str(i).zfill(2)) for i in range(1, 11)])
-patients = (['adolescent#0{}'.format(str(i).zfill(2)) for i in [7]] +
-            ['child#0{}'.format(str(i).zfill(2)) for i in [7]] +
-            ['adult#0{}'.format(str(i).zfill(2)) for i in [7]])
-n_days = 14
-seeds = [i for i in range(50)]
-# seeds = [i for i in range(5)]
-
-settings = itertools.product(patients, seeds)
-if __name__=='__main__':
-    res_list = Parallel(n_jobs=n_jobs)(delayed(run_bb)(name=s[0], seed=s[1],
-                                                   n_days=n_days, full_path=full_path) for s in settings)
-
+ 

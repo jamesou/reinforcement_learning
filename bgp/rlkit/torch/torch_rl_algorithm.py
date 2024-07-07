@@ -41,7 +41,7 @@ def _elem_or_tuple_to_variable(elem_or_tuple, device):
 
 def _filter_batch(np_batch):
     for k, v in np_batch.items():
-        if v.dtype == np.bool:
+        if v.dtype == np.bool_:
             yield k, v.astype(int)
         else:
             yield k, v

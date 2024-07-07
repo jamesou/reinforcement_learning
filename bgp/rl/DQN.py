@@ -8,7 +8,6 @@ from collections import OrderedDict
 from torch.autograd import Variable
 import torch.nn.functional as F
 import torch.nn as nn
-from tqdm import tqdm
 import random
 import pickle
 import time
@@ -321,36 +320,36 @@ def run_train(variant):
         simu_steps = 0
         s=env.reset()
         ep_r=0
-        # print("当前为第",i_episode,"个episode")
+        print("当前为第",i_episode,"个episode")
         print(dqn.memory_counter)
         for i in tqdm(range(algo_params['num_steps_per_epoch'])):
             a=dqn.choose_action(s)
-            # print(a)
+            print(a)
             a=ACTION_SPACE[1]
             print(len(env.env.BG_hist))
-            # if dqn.memory_counter < algo_params['replay_buffer_size']:
-            #     # a=ACTION_SPACE[1]
-            #     # print(ep_r)
-            #     a=random.choice(ACTION_SPACE)
-            # if dqn.memory_counter > algo_params['replay_buffer_size']:
-            #     print(i)
-            #     print(a)
-            #     print(ep_r)
+            if dqn.memory_counter < algo_params['replay_buffer_size']:
+                # a=ACTION_SPACE[1]
+                # print(ep_r)
+                a=random.choice(ACTION_SPACE)
+            if dqn.memory_counter > algo_params['replay_buffer_size']:
+                print(i)
+                print(a)
+                print(ep_r)
             # 做出行为并给出反应
-            # print(a)
+            print(a)
             s_,r,done,info=env.step(a)
-            # print(r)
-            # print(f'胰岛素量为{a},血糖值为{env.env.CGM_hist[-1]}')
-            # print(s_[284:288])
-            # print(s_[-4:])
-            # print(r)
-            # print(i)
+            print(r)
+            print(f'胰岛素量为{a},血糖值为{env.env.CGM_hist[-1]}')
+            print(s_[284:288])
+            print(s_[-4:])
+            print(r)
+            print(i)
             # 存储
             dqn.store_transition(s,a,r,s_)
             simu_steps += 1
             ep_r+=r
-            # print(env.env.insulin_hist)
-            # print(ep_r)
+            print(env.env.insulin_hist)
+            print(ep_r)
             if dqn.memory_counter>=algo_params['replay_buffer_size']:
                 dqn.learn()
                 if done or simu_steps>=algo_params['num_steps_per_epoch']:
@@ -367,8 +366,8 @@ def run_train(variant):
                         model_max_reward=dqn.eval_net
                         torch.save(model_max_reward, save_path + f'/max_reward_{net_type}.pt')
                         best_ep_r = ep_r
-                    # print('Ep: ', i_episode,
-                    #       '| Ep_r: ', round(ep_r, 2))
+                    print('Ep: ', i_episode,
+                          '| Ep_r: ', round(ep_r, 2))
                     ep_r_list.append(ep_r)
                     # break0
             elif done or simu_steps>=algo_params['num_steps_per_epoch']:
@@ -378,11 +377,11 @@ def run_train(variant):
         print('|epoch:{:3d}/{:3d} | time={:5.2f}s | ep_r={:5.4f}'.format(i_episode,algo_params['num_epochs'],(time.time()-start_time),ep_r))
 
 
-    # with open(save_path+f'/ep_r_list_{net_type}.pkl','wb') as f:
-    #     pickle.dump(ep_r_list,f)
+    with open(save_path+f'/ep_r_list_{net_type}.pkl','wb') as f:
+        pickle.dump(ep_r_list,f)
 
-    # plt.plot(ep_r_list)
-    # plt.show()
+    plt.plot(ep_r_list)
+    plt.show()
 
 def run_eval(variant,model_path,name):
     algo_params = variant['algo_params']
@@ -444,12 +443,15 @@ def run_eval(variant,model_path,name):
     ep_r=0
     for i in tqdm(range(n_days* int(1440/env.sample_time))):
         a = dqn.choose_action(s)
-        # print(a)
+        print(a)
         a = ACTION_SPACE[a]
         s, r, d, info = env.step(a)
         ep_r += r
     hist = env.env.show_history()[288:]
     print(model_path)
+    print(hist)
+    hist.to_csv(f'{save_path}/{patient}_{seed}.csv')
+
     print('平均风险为',hist['Risk'].mean())
     print('平均风险为',ep_r/(n_days* int(1440/env.sample_time)))
 

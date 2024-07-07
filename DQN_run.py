@@ -17,7 +17,7 @@ from bgp.rl import pid
 from bgp.rl.reward_functions import risk_diff
 import bgp.simglucose.envs.simglucose_gym_env as bgp_env
 from bgp.rl import reward_functions
-from bgp.rl.DQN import *
+from bgp.rl.dqn import *
 
 def reward_name_to_function(reward_name):
     if reward_name == 'risk_diff':
@@ -83,8 +83,8 @@ finish_mod = ''  # Appendix to rollout save file for a finish=True run
 finish_itr = 'best'  # Whether to use the final model or the best model according to some model selection strategy
 use_min = 30  # if False, select model with the highest average score
 
-# To enable RL-MA
-residual_bolus = False
+# To enable RL-MA, 5 meals
+residual_bolus = True 
 
 # To enable Oracle
 use_ground_truth = False
@@ -96,8 +96,10 @@ time_std = None
 num_eval_runs = 100
 
 # Some important training parameters
-num_steps_per_epoch = 5760              # 使用20天的数据作为训练集
-num_steps_per_eval = 2880               # 使用10天的数据作为验证集
+# num_steps_per_epoch = 5760              # 使用20天的数据作为训练集
+# num_steps_per_eval = 2880               # 使用10天的数据作为验证集,按照每5分钟一个区间
+num_steps_per_epoch = 4032               # 使用14天的数据作为训练集
+num_steps_per_eval = 2016               # 使用7天的数据作为验证集,按照每5分钟一个区间
 loss_function = nn.SmoothL1Loss
 reward_fun = 'risk_diff'
 snapshot_gap = 1
@@ -132,8 +134,8 @@ else:
 
 # Overwriting training parameters to make short runs for debugging purposes
 if debug:
-    num_steps_per_epoch = 5760
-    num_steps_per_eval = 576
+    num_steps_per_epoch = 4032
+    num_steps_per_eval = 2016
     num_epochs = 10
     num_eval_runs = 1
 
@@ -262,7 +264,8 @@ for setting in itertools.product(*option_dict.values()):
         carb_error_std=0,
         carb_miss_prob=0,
     )
-    run_train(variant=variant)
+    # run_train(variant=variant)
+    run_eval(variant=variant,model_path=f'saves/child#003_0/last_epoch_DQN_5.pt',name='child#003')
     # for i in range(250,326,5):
-    #     run_eval(variant=variant,model_path=f'saves/child#001_0/last_epoch_GRUQ_{i}.pt',name='child#001')
+        # run_eval(variant=variant,model_path=f'saves/child#003_0/last_epoch_GRUQ_{i}.pt',name='child#003')
     break

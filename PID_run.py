@@ -19,20 +19,20 @@ data_dir = 'rl/dir'
 RL_DIR='rl/dir'
 name = 'pid_tune_experiment_name'
 
-n_iter = 3
+n_iter = 1
 # person_grid = (['adolescent#0{}'.format(str(i).zfill(2)) for i in range(1, 11)] +
 #                ['child#0{}'.format(str(i).zfill(2)) for i in range(1, 11)] +
 #                ['adult#0{}'.format(str(i).zfill(2)) for i in range(1, 11)])
-person_grid = (['adolescent#0{}'.format(str(i).zfill(2)) for i in [6,8]] +
-               ['child#0{}'.format(str(i).zfill(2)) for i in [6,8]] +
-               ['adult#0{}'.format(str(i).zfill(2)) for i in [6,8]])
+person_grid = (['adolescent#0{}'.format(str(i).zfill(2)) for i in [7]] +
+               ['child#0{}'.format(str(i).zfill(2)) for i in [7]] +
+               ['adult#0{}'.format(str(i).zfill(2)) for i in [7]])
 # person_grid=('child#06')
 n_days = 14
 n_seeds = 3
 n_dim = 5
 full_save = False
 n_jobs = 20
-residual_bolus = False
+residual_bolus = True
 
 init_grid = {}
 best_setting_dict_prev = {}
@@ -89,7 +89,6 @@ if __name__=='__main__':
                     res_grid[key] = []
                 res_grid[key].append(res['hist'])
             joblib.dump(res_grid, '{}/{}/{}.pkl'.format(RL_DIR, itername, person))
-
         # generate next grid
         print('Finished running')
         per_patient_perf = []
@@ -139,5 +138,7 @@ if __name__=='__main__':
                 patient_grid_dict[person_name][k_type] = rh.update_grid_dict(grid, prev_best, curr_best, n_dim, perf_grid)
         joblib.dump((patient_grid_dict, best_setting_dict), '{}/{}/grid_and_settings.pkl'.format(data_dir, itername))
         grid = patient_grid_dict
+        print(f"patient_grid_dict:{patient_grid_dict}")
+        print(f"best_setting_dict:{best_setting_dict}")
         best_setting_dict_prev = best_setting_dict
 

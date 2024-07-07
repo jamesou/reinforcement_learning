@@ -15,7 +15,7 @@ from bgp.rlkit.torch.sac.policies import (CNNTanhGaussianPolicy, GRUTanhGaussian
 from bgp.rlkit.torch.networks import SimpleCNNQ, SimpleGRUQ, FancyCNNQ, FlattenMlp
 import bgp.simglucose.envs.simglucose_gym_env as bgp_env
 from bgp.rl import reward_functions
-from rlkit.core.logging import Logger
+from bgp.rlkit.core.logging import Logger
 
 
 def reward_name_to_function(reward_name):

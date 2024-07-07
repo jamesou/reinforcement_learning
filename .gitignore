@@ -3,6 +3,7 @@
 __init__.py
 __pycache__
 bgp/simglucose
+rl/dir
 *.pt
 saves
 *.svg

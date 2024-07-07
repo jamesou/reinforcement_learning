@@ -167,6 +167,7 @@ def magni_reward_duration(bg_hist, **kwargs):
     # return -1*risk-duration_time/12
     return -1*risk-duration_risk/12
 
+
 # def reward_blood_prediction(bg_hist, **kwargs):
 #     with open(r'D:\MyWorks\糖尿病预测\强化学习方法\rl4bg\bgp\bg_prediction_models\SeqMo_all\all_data.pt') as f:
 #         model=torch.load(f)
