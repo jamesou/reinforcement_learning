@@ -6,19 +6,19 @@ from joblib import Parallel, delayed
 from bgp.rl import pid
 from bgp.rl.reward_functions import risk_diff
 import bgp.simglucose.envs.simglucose_gym_env as bgp_env
-from bgp.evaluation import result_helpers as rh
 
 """
 This script was used to tune the PID and PID-MA baselines. It performs an iterative grid search with exponential
 refinement over possible parameters. The best parameters can then be tested using pid_data_collection.py
 """
-
-source_dir = '/root/projects/reinforcement_learning'
-data_dir = 'rl/dir'
-# note: current code assumes different names for residual_bolus and non residual_bolus
-RL_DIR='rl/dir'
-name = 'pid_tune_experiment_name'
-
+data_dir = 'saves' # '/data/dir'
+source_dir = '/root/projects/reinforcement_learning'  # '/source/dir'
+name = 'pid'
+save_dir = '{}/{}'.format(data_dir, name)
+print(f"save_dir:{save_dir}")
+if not os.path.exists(save_dir):
+    os.makedirs(save_dir)
+ 
 n_iter = 1
 # person_grid = (['adolescent#0{}'.format(str(i).zfill(2)) for i in range(1, 11)] +
 #                ['child#0{}'.format(str(i).zfill(2)) for i in range(1, 11)] +
@@ -28,10 +28,10 @@ person_grid = (['adolescent#0{}'.format(str(i).zfill(2)) for i in [7]] +
                ['adult#0{}'.format(str(i).zfill(2)) for i in [7]])
 # person_grid=('child#06')
 n_days = 14
-n_seeds = 3
+n_seeds = 5
 n_dim = 5
-full_save = False
-n_jobs = 20
+full_save = True
+n_jobs = 2
 residual_bolus = True
 
 init_grid = {}
@@ -88,12 +88,12 @@ if __name__=='__main__':
                 if key not in res_grid:
                     res_grid[key] = []
                 res_grid[key].append(res['hist'])
-            joblib.dump(res_grid, '{}/{}/{}.pkl'.format(RL_DIR, itername, person))
+            joblib.dump(res_grid, '{}/{}/{}.pkl'.format(data_dir, itername, person))
         # generate next grid
         print('Finished running')
         per_patient_perf = []
         for pat in person_grid:
-            dat = joblib.load('{}/{}/{}.pkl'.format(RL_DIR, itername, pat))
+            dat = joblib.load('{}/{}/{}.pkl'.format(data_dir, itername, pat))
             for key in dat:
                 for seed in range(n_seeds):
                     d = {'name': pat, 'kp': key[0], 'ki': key[1], 'kd': key[2], 'seed': seed}
@@ -135,7 +135,7 @@ if __name__=='__main__':
                     perf_grid.append(
                         df_pid.query('name=="{}" and {}=={}'.format(person_name, k_type, k_val))['euglycemic'].mean())
 
-                patient_grid_dict[person_name][k_type] = rh.update_grid_dict(grid, prev_best, curr_best, n_dim, perf_grid)
+                patient_grid_dict[person_name][k_type] = curr_best #rh.update_grid_dict(grid, prev_best, curr_best, n_dim, perf_grid)
         joblib.dump((patient_grid_dict, best_setting_dict), '{}/{}/grid_and_settings.pkl'.format(data_dir, itername))
         grid = patient_grid_dict
         print(f"patient_grid_dict:{patient_grid_dict}")

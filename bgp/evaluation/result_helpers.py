@@ -274,7 +274,7 @@ def _rlkit_load_and_summarize(directory, fl, itr, run_if_absent, replace_if_pres
                     simulate = joblib.load('{}/{}/simulate_{}_{}{}.pkl'.format(directory, fl, itr, submod, suffix))
                 else:
                     simulate = joblib.load('{}/{}/simulate_{}.pkl'.format(directory, fl, itr))
-        if simulate is -1:
+        if simulate == -1:
             return {}
         if itr is None:
             # used last itr available, should be rare
@@ -339,9 +339,9 @@ def rlkit_load_and_summarize(directory, fl, itr, run_if_absent, replace_if_prese
 
 
 def update_grid_dict(grid, prev_best, curr_best, n_dim, perf_grid):
-    # print(grid)
-    # print(prev_best)
-    # print(curr_best)
-    # print(n_dim)
-    # print(perf_grid)
+    print(grid)
+    print(prev_best)
+    print(curr_best)
+    print(n_dim)
+    print(perf_grid)
     return curr_best
