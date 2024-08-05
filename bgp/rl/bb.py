@@ -34,7 +34,7 @@ def bb_test(name, seed, n_days, full_path,q,p,residual_bolus,source_path):
     # reward_fun=magni_reward
     reward_fun=risk_diff
 
-    env = bgp_env.DeepSACT1DEnv(reward_fun=reward_fun,
+    env = bgp_env.RLT1DEnv(reward_fun=reward_fun,
                                 patient_name=name,
                                 seeds={'numpy': seed,
                                        'sensor': seed,

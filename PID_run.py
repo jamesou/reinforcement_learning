@@ -50,12 +50,12 @@ if __name__=='__main__':
         if not os.path.exists('{}/{}'.format(data_dir, itername)):
             os.mkdir('{}/{}'.format(data_dir, itername))
         for person in person_grid:
-            print('Running person')
+            print(f'Running person:{person}')
             kp_grid = grid[person]['kp']
             ki_grid = grid[person]['ki']
             kd_grid = grid[person]['kd']
             config_arr = []
-            env = bgp_env.DeepSACT1DEnv(reward_fun=risk_diff,
+            env = bgp_env.RLT1DEnv(reward_fun=risk_diff,
                                         patient_name=person,
                                         seeds={'numpy': 0,
                                                'sensor': 0,
@@ -82,6 +82,7 @@ if __name__=='__main__':
                                                                     pid=config['controller'],
                                                                     n_days=n_days,
                                                                     seed=config['seed']) for config in config_arr)
+            print(res_arr)
             res_grid = {}
             for res in res_arr:
                 key = (res['kp'], res['ki'], res['kd'])
@@ -90,7 +91,7 @@ if __name__=='__main__':
                 res_grid[key].append(res['hist'])
             joblib.dump(res_grid, '{}/{}/{}.pkl'.format(data_dir, itername, person))
         # generate next grid
-        print('Finished running')
+        print(f'Finished running:{person}')
         per_patient_perf = []
         for pat in person_grid:
             dat = joblib.load('{}/{}/{}.pkl'.format(data_dir, itername, pat))
@@ -106,7 +107,6 @@ if __name__=='__main__':
         for person_name in df_pid['name'].unique():
             print(person_name)
             df_pat = df_pid.query('name == "{}"'.format(person_name))
-
             best_perf = np.infty
             best_settings = None
             for kp in df_pat['kp'].unique():
@@ -136,9 +136,9 @@ if __name__=='__main__':
                         df_pid.query('name=="{}" and {}=={}'.format(person_name, k_type, k_val))['euglycemic'].mean())
 
                 patient_grid_dict[person_name][k_type] = curr_best #rh.update_grid_dict(grid, prev_best, curr_best, n_dim, perf_grid)
-        joblib.dump((patient_grid_dict, best_setting_dict), '{}/{}/grid_and_settings.pkl'.format(data_dir, itername))
-        grid = patient_grid_dict
         print(f"patient_grid_dict:{patient_grid_dict}")
         print(f"best_setting_dict:{best_setting_dict}")
+        joblib.dump((patient_grid_dict, best_setting_dict), '{}/{}/grid_and_settings.pkl'.format(data_dir, itername))
+        grid = patient_grid_dict    
         best_setting_dict_prev = best_setting_dict
 

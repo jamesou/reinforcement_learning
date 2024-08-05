@@ -2,20 +2,9 @@
 # import the necessary packages
 import torch
 import torch.nn as nn
-from torch.autograd import Variable
-import torch.nn.functional as F
-import numpy as np
-import gym
 import time
-import pandas as pd
-import joblib
-import os
 from collections import OrderedDict
 import itertools
-from joblib import Parallel, delayed
-from bgp.rl import pid
-from bgp.rl.reward_functions import risk_diff
-import bgp.simglucose.envs.simglucose_gym_env as bgp_env
 from bgp.rl import reward_functions
 import bgp.rl.dqn as dqn
 
@@ -207,7 +196,7 @@ for setting in itertools.product(*option_dict.values()):
         reward_fun=reward_fun,
         sim_seed_mod=test_seed_offset,
         n_sim_days=10,
-        model_type='sac',
+        model_type='dqn',
         include_time=False,
         include_meal=False,
         use_ground_truth=use_ground_truth,
@@ -264,8 +253,8 @@ for setting in itertools.product(*option_dict.values()):
         carb_error_std=0,
         carb_miss_prob=0,
     )
-    # run_train(variant=variant)
-    dqn.run_eval(variant=variant,model_path=f'saves/child#003_0/last_epoch_DQN_5.pt',name='child#003')
+    dqn.run_train(variant=variant)
+    # dqn.run_eval(variant=variant,model_path=f'saves/child#003_0/last_epoch_DQN_5.pt',name='child#003')
     # for i in range(250,326,5):
         # run_eval(variant=variant,model_path=f'saves/child#003_0/last_epoch_GRUQ_{i}.pt',name='child#003')
     break

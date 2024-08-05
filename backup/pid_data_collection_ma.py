@@ -60,7 +60,7 @@ if __name__=='__main__':
             use_seed = seed + seed_offset
             controller = pid.PID(140, kp, ki, kd, basal=basal)
             config_arr.append({'controller': controller, 'seed': use_seed})
-        env = bgp_env.DeepSACT1DEnv(reward_fun=risk_diff,
+        env = bgp_env.RLT1DEnv(reward_fun=risk_diff,
                                     patient_name=person,
                                     seeds={'numpy': 0,
                                            'sensor': 0,

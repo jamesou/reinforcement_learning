@@ -76,7 +76,7 @@ if __name__=='__main__':
             ki_grid = grid[person]['ki']
             kd_grid = grid[person]['kd']
             config_arr = []
-            env = bgp_env.DeepSACT1DEnv(reward_fun=risk_diff,
+            env = bgp_env.RLT1DEnv(reward_fun=risk_diff,
                                         patient_name=person,
                                         seeds={'numpy': 0,
                                                'sensor': 0,

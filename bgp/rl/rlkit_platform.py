@@ -154,7 +154,7 @@ def simulate_policy(variant, itr=None, save_q=False, cpu_only=False, gpu_remap=N
             mdl.stochastic_policy.features.device = run_device
             mdl.stochastic_policy.features = mdl.stochastic_policy.features.to(run_device)
             mdl.stochastic_policy.features.eval()
-        env = bgp_env.DeepSACT1DEnv(reward_fun=reward_fun,
+        env = bgp_env.RLT1DEnv(reward_fun=reward_fun,
                                     patient_name=variant['patient_name'],
                                     seeds={'numpy': variant['base_seed'] + variant['sim_seed_mod'] + sim_seed_submod,
                                            'sensor': variant['base_seed'] + variant['sim_seed_mod'] + sim_seed_submod,
@@ -244,7 +244,7 @@ def run_em_sac(variant):
     # why no eval environment?
     # 设计了奖励函数
     reward_fun = reward_name_to_function(variant['reward_fun'])
-    env = bgp_env.DeepSACT1DEnv(reward_fun=reward_fun,
+    env = bgp_env.RLT1DEnv(reward_fun=reward_fun,
                                 patient_name=variant['patient_name'],
                                 seeds={'numpy': variant['base_seed'],
                                        'sensor': variant['base_seed'],
@@ -430,7 +430,7 @@ def run_em_dqn(variant):
     # why no eval environment?
 
     reward_fun = reward_name_to_function(variant['reward_fun'])
-    env = bgp_env.DeepSACT1DEnv(reward_fun=reward_fun,
+    env = bgp_env.RLT1DEnv(reward_fun=reward_fun,
                                 patient_name=variant['patient_name'],
                                 seeds={'numpy': variant['base_seed'],
                                        'sensor': variant['base_seed'],
@@ -643,7 +643,7 @@ def run_ts_LSTM(variant):
 
     reward_fun = reward_name_to_function(variant['reward_fun'])
     # 创建一个病人的虚拟环境
-    env = bgp_env.DeepSACT1DEnv(reward_fun=reward_fun,
+    env = bgp_env.RLT1DEnv(reward_fun=reward_fun,
                                 patient_name=variant['patient_name'],
                                 seeds={'numpy': variant['base_seed'],
                                        'sensor': variant['base_seed'],
