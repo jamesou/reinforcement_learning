@@ -450,7 +450,6 @@ def run_train(variant):
                 print(a)
                 print(ep_r)
             # 做出行为并给出反应
-            print(a)
             s_,r,done,info=env.step(a)
             print(r)
             print(f'胰岛素量为{a},血糖值为{env.env.CGM_hist[-1]}')
