@@ -1,3 +1,3 @@
 # reinforcement_learning
 ## Dataflow Diagram
-![DFD](DFD.png)
+![DFD](/result_statistics/DFD.png)

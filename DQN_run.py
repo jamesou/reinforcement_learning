@@ -7,35 +7,11 @@ from collections import OrderedDict
 import itertools
 from bgp.rl import reward_functions
 import bgp.rl.dqn as dqn
-
-def reward_name_to_function(reward_name):
-    if reward_name == 'risk_diff':
-        reward_fun = reward_functions.risk_diff
-    elif reward_name == 'risk_diff_bg':
-        reward_fun = reward_functions.risk_diff_bg
-    elif reward_name == 'risk':
-        reward_fun = reward_functions.reward_risk
-    elif reward_name == 'risk_bg':
-        reward_fun = reward_functions.risk_bg
-    elif reward_name == 'magni_bg':
-        reward_fun = reward_functions.magni_reward
-    elif reward_name == 'cameron_bg':
-        reward_fun = reward_functions.cameron_reward
-    elif reward_name == 'eps_risk':
-        reward_fun = reward_functions.epsilon_risk
-    elif reward_name == 'target_bg':
-        reward_fun = reward_functions.reward_target
-    elif reward_name == 'cgm_high':
-        reward_fun = reward_functions.reward_cgm_high
-    elif reward_name == 'bg_high':
-        reward_fun = reward_functions.reward_bg_high
-    elif reward_name == 'cgm_low':
-        reward_fun = reward_functions.reward_cgm_low
-    else:
-        raise ValueError('{} not a proper reward_name'.format(reward_name))
-    return reward_fun
-
-# 1. Define some Hyper Parameters
+from datetime import datetime
+import glob
+import os
+import re
+#Define some Hyper Parameters
 BATCH_SIZE = 32     # batch size of sampling process from buffer
 LR = 0.01           # learning rate
 EPSILON = 0.9       # epsilon used for epsilon greedy approach
@@ -44,7 +20,7 @@ TARGET_NETWORK_REPLACE_FREQ = 100       # How frequently target netowrk updates
 MEMORY_CAPACITY = 2000                  # The capacity of experience replay buffer
 
 
-# 1. 糖尿病模拟器的参数
+#Set simulator paramters
 t_start = time.time()
 base_name = 'tst'
 save_path = '/saves'  # where the outputs will be saved
@@ -55,13 +31,18 @@ source_path = './'  # the path to the location of the folder 'bgp' which contain
 debug = True
 device_list = ['cuda:0']  # list of cuda device ids or None for cpu
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # the cuda device to default to for debug runs, can also set to 'cpu'
-seed_options = [i for i in range(3)]
+seed_options = [i for i in range(5)]
+seed_options = [0]
 validation_seed_offset = 1000000
 test_seed_offset = 2000000
 # the set of virtual patients to run for, valid options are [child/adolescent/adult]#[001/.../010]
-person_options = (['child#0{}'.format(str(i).zfill(2)) for i in range(1, 11)] +
+# person_options = (['child#0{}'.format(str(i).zfill(2)) for i in range(1, 11)] +
+#                   ['adolescent#0{}'.format(str(i).zfill(2)) for i in range(1, 11)] +
+#                   ['adult#0{}'.format(str(i).zfill(2)) for i in range(1, 11)])
+person_options = (
                   ['adolescent#0{}'.format(str(i).zfill(2)) for i in range(1, 11)] +
                   ['adult#0{}'.format(str(i).zfill(2)) for i in range(1, 11)])
+# person_options = (['adolescent#008'])
 # Transfer
 transfer_run = False  # Used to differentiate RL-Scratch from RL-Trans
 transfer_init = 'fsp'  # The directory where the original trained models are saved
@@ -87,10 +68,10 @@ num_eval_runs = 100
 # Some important training parameters
 # num_steps_per_epoch = 5760              # 使用20天的数据作为训练集
 # num_steps_per_eval = 2880               # 使用10天的数据作为验证集,按照每5分钟一个区间
-num_steps_per_epoch = 4032               # 使用14天的数据作为训练集
-num_steps_per_eval = 2016               # 使用7天的数据作为验证集,按照每5分钟一个区间
+num_steps_per_epoch = 288*6               # 使用14天的数据作为训练集
+num_steps_per_eval = 288*3               # 使用7天的数据作为验证集,按照每5分钟一个区间
 loss_function = nn.SmoothL1Loss
-reward_fun = 'risk_diff'
+reward_fun = 'magni_reward_duration'
 snapshot_gap = 1
 discount = 0.99
 policy_lr = 3e-4
@@ -113,9 +94,6 @@ termination_penalty = 1e5
 # Realistic Variation in training data
 update_seed_on_reset = True
 
-# if not os.path.exists(full_path) and not finish:
-#     os.mkdir(full_path)
-
 if transfer_run:
     num_epochs = 50
 else:
@@ -123,41 +101,28 @@ else:
 
 # Overwriting training parameters to make short runs for debugging purposes
 if debug:
-    num_steps_per_epoch = 4032
-    num_steps_per_eval = 2016
+    # num_epochs = 800
+    # num_eval_runs = 100
     num_epochs = 10
     num_eval_runs = 1
 
-
-
+start_date = datetime(2024, 8, 8, 0, 0, 0)
 '''
 --------------Procedures of DQN Algorithm------------------
 '''
 tuples = []
 print(person_options)
-# person_options=['adolescent#001']
-# person_options=['adolescent#001','child#003','adult#001']
-person_options=['child#003']
-seed_options=[0]
 option_dict = OrderedDict([('seed', seed_options),
                            ('person', person_options),
                            ])
-net_type='DQN'      # DQN,CNNQ,GRUQ
-
+net_type='DQN'      # DQN,CNNQ,GRUQ,DRNN
+# Iterate over all combinations of 'seed' and 'person'
 for setting in itertools.product(*option_dict.values()):
     seed, person= setting
     reset_lim = {'lower_lim': 10, 'upper_lim': 1000}
     name_args = OrderedDict({})
     for i in range(len(setting)):
         name_args[list(option_dict.keys())[i]] = setting[i]
-
-    if transfer_run:
-        use_warm_start = True
-        warm_start = transfer_init
-    else:
-        use_warm_start = False
-        warm_start = None
-
     run_name = '{}'.format(base_name)
     for key in name_args:
         run_name += ';{}={}'.format(key, name_args[key])
@@ -179,8 +144,8 @@ for setting in itertools.product(*option_dict.values()):
             vf_lr=vf_lr,
             save_environment=True,
             device=device,
-            # replay_buffer_size=int(5760),
-            replay_buffer_size=int(3e4),
+            # replay_buffer_size=int(3e4),
+            replay_buffer_size=int(1.5e4),
             weight_decay=0,
             gradient_max_value=None,
             save_replay_buffer=False,
@@ -195,7 +160,7 @@ for setting in itertools.product(*option_dict.values()):
         log_dir=save_name,
         reward_fun=reward_fun,
         sim_seed_mod=test_seed_offset,
-        n_sim_days=10,
+        n_sim_days=3,
         model_type='dqn',
         include_time=False,
         include_meal=False,
@@ -208,7 +173,7 @@ for setting in itertools.product(*option_dict.values()):
         rnn=True,
         rnn_size=rnn_size,
         rnn_layers=rnn_layers,
-        n_hours=24,
+        n_hours=4,
         norm=False,
         loss_function=loss_function,
         time_std=time_std,
@@ -230,7 +195,6 @@ for setting in itertools.product(*option_dict.values()):
         limited_gt=False,
         termination_penalty=termination_penalty,
         dilation=False,
-        warm_start=warm_start,
         weekly=False,
         update_seed_on_reset=update_seed_on_reset,
         num_eval_runs=num_eval_runs,
@@ -252,9 +216,21 @@ for setting in itertools.product(*option_dict.values()):
         use_min=use_min,
         carb_error_std=0,
         carb_miss_prob=0,
+        start_date = start_date
     )
     dqn.run_train(variant=variant)
-    # dqn.run_eval(variant=variant,model_path=f'saves/child#003_0/last_epoch_DQN_5.pt',name='child#003')
+    full_path = './saves/dqn'
+    # Use glob to list all .pt files
+    pt_files = glob.glob(os.path.join(full_path, '**', '*.pt'), recursive=True)
+    # Print the list of .pt files
+    pattern = r'/dqn/([a-z]+#\d{3})_\d'
+    for pt_full_path in pt_files:
+        print(f"pt_full_path:{pt_full_path}")
+        # Regular expression pattern to match the desired part
+        match = re.search(pattern, pt_full_path)
+        if match:
+            print(f"match.group(1):{match.group(1)}")
+            dqn.run_eval(variant=variant,model_path=f'{pt_full_path}',name=f'{match.group(1)}')
+
     # for i in range(250,326,5):
         # run_eval(variant=variant,model_path=f'saves/child#003_0/last_epoch_GRUQ_{i}.pt',name='child#003')
-    break
